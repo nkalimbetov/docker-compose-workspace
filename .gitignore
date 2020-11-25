@@ -25,7 +25,7 @@
 # Файлы web-проектов
 /projects/**
 !/projects/.gitkeep
-
+/projects_old
 
 # Другие файлы
 .idea/
