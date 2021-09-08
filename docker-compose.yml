@@ -4,12 +4,12 @@ networks:
   backend:
 
 services:
-
   nginx:
-    image: nginx:stable-alpine
+    image: nginx:stable
     container_name: nginx
     ports:
       - "${NGINX_PORT}:80"
+      - "443:443"
     volumes:
       - ./projects:/var/www
       - ./nginx/conf.d:/etc/nginx/conf.d
@@ -32,17 +32,17 @@ services:
     networks:
       - backend
       
-  redis-commander:
-    container_name: redis-commander
-    hostname: redis-commander
-    image: rediscommander/redis-commander:latest
-    restart: always
-    environment:
-      - REDIS_HOSTS=local:redis:6379
-    ports:
-      - "8081:8081"
-    networks:
-      - backend
+  #redis-commander:
+  #  container_name: redis-commander
+  #  hostname: redis-commander
+  #  image: rediscommander/redis-commander:latest
+  #  restart: always
+  #  environment:
+  #    - REDIS_HOSTS=local:redis:6379
+  #  ports:
+  #    - "8081:8081"
+  #  networks:
+  #    - backend
 
   mysql-5.7:
     image: mysql:5.7
@@ -64,49 +64,49 @@ services:
     networks:
       - backend
 
-  mysql-8:
-    image: mysql:8.0.21
-    command: --default-authentication-plugin=mysql_native_password --skip_name_resolve
-    container_name: mysql-8
-    restart: unless-stopped
-    volumes:
-      - ./mysql-8/data:/var/lib/mysql
-      - ./mysql-8/conf.d:/etc/mysql/conf.d
-      - ./mysql-8/logs:/var/log/mysql/
-      - ./mysql-8/dump:/dump
-    ports:
-      - "${MYSQL_8_PORT}:3306"
-    security_opt:
-      - seccomp:unconfined
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      TZ: ${WORKSPACE_TIMEZONE}
-    networks:
-      - backend
+  #mysql-8:
+  #  image: mysql:8.0.21
+  #  command: --default-authentication-plugin=mysql_native_password --skip_name_resolve
+  #  container_name: mysql-8
+  #  restart: unless-stopped
+  #  volumes:
+  #    - ./mysql-8/data:/var/lib/mysql
+  #    - ./mysql-8/conf.d:/etc/mysql/conf.d
+  #    - ./mysql-8/logs:/var/log/mysql/
+  #    - ./mysql-8/dump:/dump
+  #  ports:
+  #    - "${MYSQL_8_PORT}:3306"
+  #  security_opt:
+  #    - seccomp:unconfined
+  #  environment:
+  #    MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+  #    TZ: ${WORKSPACE_TIMEZONE}
+  #  networks:
+  #    - backend
       
   adminer:
     image: adminer
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8082:8080"
     networks:
       - backend
 
-  postgres:
-    image: postgres:alpine
-    volumes:
-      - ./postgres/data:/var/lib/postgresql/data
-      - ./postgres/dump:/dump
-    ports:
-      - "${POSTGRES_PORT}:5432"
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      TZ: ${WORKSPACE_TIMEZONE}
-    networks:
-        - backend
-    container_name: postgres
+  #postgres:
+  #  image: postgres:alpine
+  #  volumes:
+  #    - ./postgres/data:/var/lib/postgresql/data
+  #    - ./postgres/dump:/dump
+  #  ports:
+  #    - "${POSTGRES_PORT}:5432"
+  #  environment:
+  #    POSTGRES_DB: ${POSTGRES_DB}
+  #    POSTGRES_USER: ${POSTGRES_USER}
+  #    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #    TZ: ${WORKSPACE_TIMEZONE}
+  #  networks:
+  #      - backend
+  #  container_name: postgres
 
   mongo:
     image: mongo:4.2
@@ -121,38 +121,35 @@ services:
     networks:
       - backend
     container_name: mongo
-  
-  tfit:
+
+  php-8:
     build:
-      context: ./projects/tfit
-      dockerfile: Dockerfile.dev
-    container_name: tfit
-    volumes:
-      - ./projects/tfit:/var/www/tfit
-    ports:
-      - "9006:9000"
-    networks:
-      - backend
-      
-  socket-io:
-    build:
-      context: ./projects/socket-io
+      context: ./php-workspace/php-8
       dockerfile: Dockerfile
-    container_name: socket-io
+      args:
+        DOCKER_PHP_VERSION: '8'
+        DOCKER_PHP_ENABLE_XDEBUG: '${DOCKER_PHP_ENABLE_XDEBUG}'
+        TZ: ${WORKSPACE_TIMEZONE}
+    working_dir: /var/www
+    container_name: php-8
     volumes:
-      - ./projects/socket-io:/var/www
+      - ./.ssh:/home/www-data/.ssh
+      - ./projects:/var/www
+      - ./php-ini/8/php.ini:/usr/local/etc/php/php.ini
+    environment:
+      COMPOSER_MEMORY_LIMIT: -1
     ports:
-      - "3000:3000"
+      - "${PHP_8_PORT}:9000"
     networks:
       - backend
 
   php-7.4:
     build:
-      context: ./php-workspace
-      dockerfile: Dockerfile_7.4
+      context: ./php-workspace/php-7.4
+      dockerfile: Dockerfile
       args:
         DOCKER_PHP_VERSION: '7.4'
-        DOCKER_PHP_ENABLE_XDEBUG: ${DOCKER_PHP_ENABLE_XDEBUG}
+        DOCKER_PHP_ENABLE_XDEBUG: '${DOCKER_PHP_ENABLE_XDEBUG}'
         TZ: ${WORKSPACE_TIMEZONE}
     working_dir: /var/www
     container_name: php-7.4
@@ -165,43 +162,24 @@ services:
     networks:
       - backend
 
-  php-7.3:
-    build:
-      context: ./php-workspace
-      dockerfile: Dockerfile
-      args:
-        DOCKER_PHP_VERSION: '7.3'
-        DOCKER_PHP_ENABLE_XDEBUG: ${DOCKER_PHP_ENABLE_XDEBUG}
-        TZ: ${WORKSPACE_TIMEZONE}
-    working_dir: /var/www
-    container_name: php-7.3
-    volumes:
-      - ./.ssh:/home/www-data/.ssh
-      - ./projects:/var/www
-      - ./php-ini/7.3/php.ini:/usr/local/etc/php/php.ini
-      - ./php-workers/7.3/supervisor.d:/etc/supervisor.d
-    ports:
-      - "${PHP_7_3_PORT}:9000"
-    networks:
-      - backend
       
-  
-  php-7.1:
+  php-7.2:
     build:
-      context: ./php-workspace
+      context: ./php-workspace/php-7.2
       dockerfile: Dockerfile
       args:
-        DOCKER_PHP_VERSION: '7.1'
-        DOCKER_PHP_ENABLE_XDEBUG: ${DOCKER_PHP_ENABLE_XDEBUG}
+        DOCKER_PHP_VERSION: '7.2'
+        DOCKER_PHP_ENABLE_XDEBUG: '${DOCKER_PHP_ENABLE_XDEBUG}'
         TZ: ${WORKSPACE_TIMEZONE}
     working_dir: /var/www
-    container_name: php-7.1
+    container_name: php-7.2
     volumes:
       - ./.ssh:/home/www-data/.ssh
       - ./projects:/var/www
-      - ./php-ini/7.1/php.ini:/usr/local/etc/php/php.ini
-      - ./php-workers/7.1/supervisor.d:/etc/supervisor.d
+      - ./php-ini/7.2/php.ini:/usr/local/etc/php/php.ini
+      - ./php-workers/7.2/supervisor.d:/etc/supervisor.d
     ports:
-      - "${PHP_7_1_PORT}:9000"
+      - "${PHP_7_2_PORT}:9000"
     networks:
       - backend
+  

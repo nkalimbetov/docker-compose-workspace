@@ -128,12 +128,12 @@ RUN if [ "${DOCKER_PHP_ENABLE_XDEBUG}" == "on" ]; then \
 # Clean
 RUN rm -rf /var/cache/apk/* && docker-php-source delete
 
-npm config set strict-ssl false
+RUN npm config set strict-ssl false
 
 USER root
 
-RUN curl -sS http://getcomposer.org/installer | php
-RUN mv composer.phar /usr/local/bin/composer
+RUN curl -sS http://getcomposer.org/installer | php -- --version=1.10.19 --install-dir=/usr/local/bin --filename=composer
+#RUN mv composer.phar /usr/local/bin/composer
 
 USER www-data:www-data
 
