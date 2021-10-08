@@ -31,18 +31,18 @@ services:
       TZ: ${WORKSPACE_TIMEZONE}
     networks:
       - backend
-      
-  #redis-commander:
-  #  container_name: redis-commander
-  #  hostname: redis-commander
-  #  image: rediscommander/redis-commander:latest
-  #  restart: always
-  #  environment:
-  #    - REDIS_HOSTS=local:redis:6379
-  #  ports:
-  #    - "8081:8081"
-  #  networks:
-  #    - backend
+
+  redis-commander:
+    container_name: redis-commander
+    hostname: redis-commander
+    image: rediscommander/redis-commander:latest
+    restart: always
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    networks:
+      - backend
 
   mysql-5.7:
     image: mysql:5.7
@@ -83,7 +83,7 @@ services:
   #    TZ: ${WORKSPACE_TIMEZONE}
   #  networks:
   #    - backend
-      
+
   adminer:
     image: adminer
     restart: unless-stopped
@@ -92,21 +92,22 @@ services:
     networks:
       - backend
 
-  #postgres:
-  #  image: postgres:alpine
-  #  volumes:
-  #    - ./postgres/data:/var/lib/postgresql/data
-  #    - ./postgres/dump:/dump
-  #  ports:
-  #    - "${POSTGRES_PORT}:5432"
-  #  environment:
-  #    POSTGRES_DB: ${POSTGRES_DB}
-  #    POSTGRES_USER: ${POSTGRES_USER}
-  #    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-  #    TZ: ${WORKSPACE_TIMEZONE}
-  #  networks:
-  #      - backend
-  #  container_name: postgres
+  postgres:
+    image: postgres:12
+    container_name: postgres
+    volumes:
+      - ./postgres/data:/var/lib/postgresql/data
+      - ./postgres/dump:/dump
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    environment:
+      PGDATA: /var/lib/postgresql/data/pgdata/
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: ${WORKSPACE_TIMEZONE}
+    networks:
+        - backend
 
   mongo:
     image: mongo:4.2
@@ -151,6 +152,7 @@ services:
         DOCKER_PHP_VERSION: '7.4'
         DOCKER_PHP_ENABLE_XDEBUG: '${DOCKER_PHP_ENABLE_XDEBUG}'
         TZ: ${WORKSPACE_TIMEZONE}
+    user: "www-data:www-data"
     working_dir: /var/www
     container_name: php-7.4
     volumes:
@@ -162,7 +164,6 @@ services:
     networks:
       - backend
 
-      
   php-7.2:
     build:
       context: ./php-workspace/php-7.2
@@ -171,6 +172,7 @@ services:
         DOCKER_PHP_VERSION: '7.2'
         DOCKER_PHP_ENABLE_XDEBUG: '${DOCKER_PHP_ENABLE_XDEBUG}'
         TZ: ${WORKSPACE_TIMEZONE}
+    user: "www-data:www-data"
     working_dir: /var/www
     container_name: php-7.2
     volumes:
@@ -182,4 +184,3 @@ services:
       - "${PHP_7_2_PORT}:9000"
     networks:
       - backend
-  
