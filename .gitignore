@@ -18,6 +18,8 @@
 !/.ssh/.gitkeep
 /redis/data/**
 !/redis/data/.gitkeep
+/elasticsearch/data/**
+!/elasticsearch/data/.gitkeep
 /nginx/logs/**
 !/nginx/logs/.gitkeep
 

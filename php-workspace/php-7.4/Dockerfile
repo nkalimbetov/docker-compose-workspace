@@ -19,10 +19,13 @@ RUN apt-get update && apt-get install -y \
         procps \
 	      wget \
         nodejs \
-        npm
+        npm \
+        unzip
 
 RUN docker-php-ext-configure bcmath --enable-bcmath && \
-    docker-php-ext-configure gd && \
+    docker-php-ext-configure gd \
+        --with-freetype=/usr/include/ \
+        --with-jpeg=/usr/include/ && \
     docker-php-ext-configure gettext && \
     docker-php-ext-configure intl --enable-intl && \
     docker-php-ext-configure opcache --enable-opcache && \
@@ -45,11 +48,17 @@ RUN docker-php-ext-configure bcmath --enable-bcmath && \
         pdo_mysql \
 		    pdo \
 		    pdo_pgsql \
-	    	pgsql
+	    	pgsql \
+        sockets
+
+# install amqp
+RUN apt-get update && apt-get install -y librabbitmq-dev
+RUN	pecl install amqp-1.10.2
+RUN	docker-php-ext-enable amqp
 
 RUN npm config set strict-ssl false
 
-RUN curl -sS http://getcomposer.org/installer | php -- --version=1.10.22 --install-dir=/usr/local/bin --filename=composer
+RUN curl -sS http://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # install xdebug
 RUN pecl install xdebug && \

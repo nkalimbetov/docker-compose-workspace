@@ -59,7 +59,8 @@ RUN apk add --update --no-cache icu-libs \
         su-exec \
         wget \
         nodejs \
-        npm
+        npm \
+        unzip
 
 #  Install php extensions
 RUN php -m && \

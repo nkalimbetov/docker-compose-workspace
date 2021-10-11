@@ -17,9 +17,10 @@ RUN apt-get update && apt-get install -y \
         libxml2-dev \
         libpq-dev \
         procps \
-		wget \
+		    wget \
         nodejs \
-        npm
+        npm \
+        unzip
 
 RUN docker-php-ext-configure bcmath --enable-bcmath && \
     docker-php-ext-configure gd \
