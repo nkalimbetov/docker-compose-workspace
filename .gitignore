@@ -22,6 +22,8 @@
 !/elasticsearch/data/.gitkeep
 /nginx/logs/**
 !/nginx/logs/.gitkeep
+/mariadb/dump/**
+!/mariadb/dump/.gitkeep
 
 # Файлы web-проектов
 /projects/**
